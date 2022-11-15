@@ -228,10 +228,7 @@ class Image:
             self.array, (height, width), anti_aliasing=anti_aliasing, order=order
         )
 
-        if as_image:
-            return self.__class__(array)
-        else:
-            return self._as_uint8_rgba(array)
+        return self.__class__(array) if as_image else self._as_uint8_rgba(array)
 
     def resize_long_side_to(self, size, as_image=False):
         scale = size / self.long_side
@@ -244,20 +241,14 @@ class Image:
     def rescale(self, scale, as_image=False):
         array = skimage.transform.rescale(self.array, scale, multichannel=True)
 
-        if as_image:
-            return self.__class__(array)
-        else:
-            return self._as_uint8_rgba(array)
+        return self.__class__(array) if as_image else self._as_uint8_rgba(array)
 
     def rotate(self, angle, as_image=False):
         rotate_array = np.array(
             self.as_pil.rotate(angle, resample=PILImage.BICUBIC), dtype=np.uint8
         )
 
-        if as_image:
-            return self.__class__(rotate_array)
-        else:
-            return rotate_array
+        return self.__class__(rotate_array) if as_image else rotate_array
 
     def blur(self, sigma=1.0, as_image=False):
         blur_array = np.array(
@@ -265,20 +256,14 @@ class Image:
             dtype=np.uint8,
         )
 
-        if as_image:
-            return self.__class__(blur_array)
-        else:
-            return blur_array
+        return self.__class__(blur_array) if as_image else blur_array
 
     def invert(self, as_image=False):
         invert_array = np.array(skimage.util.invert(self.rgb))
 
         invert_array = np.dstack((invert_array, self.array[:, :, 3]))
 
-        if as_image:
-            return self.__class__(invert_array)
-        else:
-            return invert_array
+        return self.__class__(invert_array) if as_image else invert_array
 
     def desaturate(self, ratio, as_image=False):
         desaturate_array = np.array(
@@ -292,10 +277,7 @@ class Image:
 
         desaturate_array = np.dstack((desaturate_array, self.array[:, :, 3]))
 
-        if as_image:
-            return self.__class__(desaturate_array)
-        else:
-            return desaturate_array
+        return self.__class__(desaturate_array) if as_image else desaturate_array
 
     def segment(self, segments=24, segment_by="COLOR", compactness=8, sigma=2):
         if segment_by not in ["COLOR", "LIGHTNESS"]:
@@ -320,15 +302,12 @@ class Image:
 
         kmeans = KMeans(n_clusters=quantity, n_jobs=1).fit_predict(image_kmeans)
 
-        clusters = dict()
-
-        for i in range(quantity):
-            clusters[i] = list()
+        clusters = {i: [] for i in range(quantity)}
 
         for i, cluster in enumerate(kmeans):
             clusters[cluster].append(image_kmeans[i])
 
-        dominant_colors = list()
+        dominant_colors = []
 
         for lab_tuples in clusters.values():
             l, a, b = zip(*lab_tuples)
